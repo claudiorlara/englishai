@@ -8,6 +8,8 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#2563eb">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; }
@@ -16,61 +18,69 @@
 <body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
     <!-- Tela de Login/Cadastro -->
     <div id="auth-screen" class="min-h-screen flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
+        <div class="bg-white rounded-2xl shadow-xl p-6 sm:p-8 w-full max-w-md">
             <!-- Logo -->
-            <div class="text-center mb-8">
-                <div class="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <span class="text-3xl text-white">🎓</span>
+            <div class="text-center mb-6 sm:mb-8">
+                <div class="w-16 h-16 sm:w-20 sm:h-20 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span class="text-2xl sm:text-3xl text-white">🎓</span>
                 </div>
-                <h1 class="text-3xl font-bold text-gray-800">EnglishAI</h1>
-                <p class="text-gray-500 mt-2">Aprenda inglês conversando com IA</p>
+                <h1 class="text-2xl sm:text-3xl font-bold text-gray-800">EnglishAI</h1>
+                <p class="text-gray-500 mt-2 text-sm sm:text-base">Aprenda inglês conversando com IA</p>
             </div>
 
             <!-- Formulário de Cadastro -->
             <div id="register-form">
-                <h2 class="text-xl font-semibold text-gray-700 mb-4">Criar sua conta</h2>
-                <div class="space-y-4">
+                <h2 class="text-lg sm:text-xl font-semibold text-gray-700 mb-4">Criar sua conta</h2>
+                <div class="space-y-3 sm:space-y-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-600 mb-1">Seu nome</label>
                         <input type="text" id="reg-name" placeholder="Como podemos te chamar?"
-                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition">
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition text-base">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-600 mb-1">Email</label>
                         <input type="email" id="reg-email" placeholder="seu@email.com"
-                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition">
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition text-base">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-600 mb-1">Sua chave de API do Google Gemini</label>
-                        <input type="password" id="reg-apikey" placeholder="Cole sua chave aqui..."
-                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition">
-                        <p class="text-xs text-gray-400 mt-1">Grátis em <a href="https://aistudio.google.com/apikey" target="_blank" class="text-blue-500 hover:underline">ai.google.dev</a></p>
+                        <label class="block text-sm font-medium text-gray-600 mb-1">Chave de API do Google Gemini</label>
+                        <input type="text" id="reg-apikey" placeholder="AIzaSy..."
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition text-base font-mono text-sm">
+                        <div class="mt-2 p-3 bg-blue-50 rounded-lg">
+                            <p class="text-xs text-blue-700 font-medium mb-1">Como obter (gratuito):</p>
+                            <ol class="text-xs text-blue-600 space-y-1 list-decimal list-inside">
+                                <li>Acesse <a href="https://aistudio.google.com/apikey" target="_blank" class="underline font-medium">aistudio.google.com/apikey</a></li>
+                                <li>Faça login com sua conta Google</li>
+                                <li>Clique em "Create API Key"</li>
+                                <li>Copie a chave e cole aqui</li>
+                            </ol>
+                        </div>
                     </div>
                     <button onclick="register()"
-                        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition transform hover:scale-[1.02]">
+                        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition transform hover:scale-[1.02] text-base">
                         Começar a aprender 🚀
                     </button>
                 </div>
-                <p class="text-center text-gray-500 mt-4">
+                <p class="text-center text-gray-500 mt-4 text-sm">
                     Já tem conta? <a href="#" onclick="showLogin()" class="text-blue-600 font-medium hover:underline">Entrar</a>
                 </p>
             </div>
 
             <!-- Formulário de Login -->
             <div id="login-form" style="display: none;">
-                <h2 class="text-xl font-semibold text-gray-700 mb-4">Entrar</h2>
-                <div class="space-y-4">
+                <h2 class="text-lg sm:text-xl font-semibold text-gray-700 mb-4">Entrar</h2>
+                <div class="space-y-3 sm:space-y-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-600 mb-1">Email</label>
                         <input type="email" id="login-email" placeholder="seu@email.com"
-                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition">
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition text-base">
                     </div>
                     <button onclick="login()"
-                        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition transform hover:scale-[1.02]">
+                        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition transform hover:scale-[1.02] text-base">
                         Entrar
                     </button>
                 </div>
-                <p class="text-center text-gray-500 mt-4">
+                <p class="text-center text-gray-500 mt-4 text-sm">
                     Não tem conta? <a href="#" onclick="showRegister()" class="text-blue-600 font-medium hover:underline">Criar conta</a>
                 </p>
             </div>
@@ -91,9 +101,8 @@
             <div class="space-y-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-600 mb-1">Chave de API do Google Gemini</label>
-                    <input type="password" id="settings-apikey" placeholder="Cole sua chave aqui..."
-                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition">
-                    <p class="text-xs text-gray-400 mt-1">Obtenha grátis em <a href="https://aistudio.google.com/apikey" target="_blank" class="text-blue-500 hover:underline">ai.google.dev</a></p>
+                    <input type="text" id="settings-apikey" placeholder="AIzaSy..."
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition font-mono text-sm">
                 </div>
                 <div class="flex space-x-3">
                     <button onclick="saveSettings()"
@@ -113,15 +122,15 @@
     <div id="home-screen" style="display: none;" class="min-h-screen">
         <!-- Header -->
         <header class="bg-white shadow-sm">
-            <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+            <div class="max-w-4xl mx-auto px-4 py-3 sm:py-4 flex items-center justify-between">
                 <div class="flex items-center space-x-3">
                     <div class="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
                         <span class="text-white text-lg">🎓</span>
                     </div>
-                    <span class="text-xl font-bold text-gray-800">EnglishAI</span>
+                    <span class="text-lg sm:text-xl font-bold text-gray-800">EnglishAI</span>
                 </div>
-                <div class="flex items-center space-x-4">
-                    <span id="user-greeting" class="text-gray-600 text-sm"></span>
+                <div class="flex items-center space-x-3">
+                    <span id="user-greeting" class="text-gray-600 text-sm hidden sm:block"></span>
                     <button onclick="logout()" class="text-gray-400 hover:text-red-500 transition" title="Sair">
                         🚪
                     </button>
@@ -130,70 +139,66 @@
         </header>
 
         <!-- Conteúdo Principal -->
-        <main class="max-w-4xl mx-auto px-4 py-8">
+        <main class="max-w-4xl mx-auto px-4 py-6 sm:py-8">
             <!-- Welcome Card -->
-            <div class="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-6 mb-8 text-white">
-                <h2 class="text-2xl font-bold mb-2">Olá, <span id="welcome-name"></span>! 👋</h2>
-                <p class="text-blue-100">Vamos praticar inglês hoje?</p>
-                <div class="mt-4 flex items-center space-x-4">
-                    <div class="bg-white bg-opacity-20 rounded-lg px-4 py-2">
-                        <span class="text-sm">Nível atual</span>
-                        <p class="text-xl font-bold" id="current-level">A1</p>
+            <div class="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-5 sm:p-6 mb-6 sm:mb-8 text-white">
+                <h2 class="text-xl sm:text-2xl font-bold mb-2">Olá, <span id="welcome-name"></span>! 👋</h2>
+                <p class="text-blue-100 text-sm sm:text-base">Vamos praticar inglês hoje?</p>
+                <div class="mt-4 flex flex-wrap items-center gap-3 sm:gap-4">
+                    <div class="bg-white bg-opacity-20 rounded-lg px-3 py-2 sm:px-4 sm:py-2">
+                        <span class="text-xs sm:text-sm">Nível</span>
+                        <p class="text-lg sm:text-xl font-bold" id="current-level">A1</p>
                     </div>
-                    <div class="bg-white bg-opacity-20 rounded-lg px-4 py-2">
-                        <span class="text-sm">XP Total</span>
-                        <p class="text-xl font-bold" id="total-xp">0</p>
+                    <div class="bg-white bg-opacity-20 rounded-lg px-3 py-2 sm:px-4 sm:py-2">
+                        <span class="text-xs sm:text-sm">XP</span>
+                        <p class="text-lg sm:text-xl font-bold" id="total-xp">0</p>
                     </div>
-                    <div class="bg-white bg-opacity-20 rounded-lg px-4 py-2">
-                        <span class="text-sm">Sequência</span>
-                        <p class="text-xl font-bold" id="streak">0 dias</p>
+                    <div class="bg-white bg-opacity-20 rounded-lg px-3 py-2 sm:px-4 sm:py-2">
+                        <span class="text-xs sm:text-sm">Sequência</span>
+                        <p class="text-lg sm:text-xl font-bold" id="streak">0 dias</p>
                     </div>
                 </div>
             </div>
 
             <!-- Botões de Ação -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                <!-- Chat com IA -->
-                <a href="app.html" class="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition transform hover:scale-[1.02] border border-gray-100">
-                    <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-3">
-                        <span class="text-2xl">💬</span>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-6 sm:mb-8">
+                <a href="app.html" class="bg-white rounded-xl p-4 sm:p-6 shadow-sm hover:shadow-md transition transform hover:scale-[1.02] border border-gray-100">
+                    <div class="w-10 h-10 sm:w-12 sm:h-12 bg-green-100 rounded-lg flex items-center justify-center mb-3">
+                        <span class="text-xl sm:text-2xl">💬</span>
                     </div>
-                    <h3 class="text-lg font-semibold text-gray-800">Conversar com IA</h3>
-                    <p class="text-gray-500 text-sm mt-1">Pratique inglês em situações reais</p>
+                    <h3 class="text-base sm:text-lg font-semibold text-gray-800">Conversar com IA</h3>
+                    <p class="text-gray-500 text-xs sm:text-sm mt-1">Pratique inglês em situações reais</p>
                 </a>
 
-                <!-- Níveis -->
-                <a href="levels.html" class="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition transform hover:scale-[1.02] border border-gray-100">
-                    <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-3">
-                        <span class="text-2xl">📚</span>
+                <a href="levels.html" class="bg-white rounded-xl p-4 sm:p-6 shadow-sm hover:shadow-md transition transform hover:scale-[1.02] border border-gray-100">
+                    <div class="w-10 h-10 sm:w-12 sm:h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-3">
+                        <span class="text-xl sm:text-2xl">📚</span>
                     </div>
-                    <h3 class="text-lg font-semibold text-gray-800">Níveis & Lições</h3>
-                    <p class="text-gray-500 text-sm mt-1">Veja seu progresso em cada nível</p>
+                    <h3 class="text-base sm:text-lg font-semibold text-gray-800">Níveis & Lições</h3>
+                    <p class="text-gray-500 text-xs sm:text-sm mt-1">Veja seu progresso em cada nível</p>
                 </a>
 
-                <!-- Exercícios -->
-                <a href="app.html?mode=exercises" class="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition transform hover:scale-[1.02] border border-gray-100">
-                    <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center mb-3">
-                        <span class="text-2xl">🧩</span>
+                <a href="app.html?mode=exercises" class="bg-white rounded-xl p-4 sm:p-6 shadow-sm hover:shadow-md transition transform hover:scale-[1.02] border border-gray-100">
+                    <div class="w-10 h-10 sm:w-12 sm:h-12 bg-yellow-100 rounded-lg flex items-center justify-center mb-3">
+                        <span class="text-xl sm:text-2xl">🧩</span>
                     </div>
-                    <h3 class="text-lg font-semibold text-gray-800">Exercícios</h3>
-                    <p class="text-gray-500 text-sm mt-1">Flashcards e quizzes interativos</p>
+                    <h3 class="text-base sm:text-lg font-semibold text-gray-800">Exercícios</h3>
+                    <p class="text-gray-500 text-xs sm:text-sm mt-1">Flashcards e quizzes interativos</p>
                 </a>
 
-                <!-- Progresso -->
-                <a href="progress.html" class="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition transform hover:scale-[1.02] border border-gray-100">
-                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-3">
-                        <span class="text-2xl">📊</span>
+                <a href="progress.html" class="bg-white rounded-xl p-4 sm:p-6 shadow-sm hover:shadow-md transition transform hover:scale-[1.02] border border-gray-100">
+                    <div class="w-10 h-10 sm:w-12 sm:h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-3">
+                        <span class="text-xl sm:text-2xl">📊</span>
                     </div>
-                    <h3 class="text-lg font-semibold text-gray-800">Meu Progresso</h3>
-                    <p class="text-gray-500 text-sm mt-1">Acompanhe sua evolução</p>
+                    <h3 class="text-base sm:text-lg font-semibold text-gray-800">Meu Progresso</h3>
+                    <p class="text-gray-500 text-xs sm:text-sm mt-1">Acompanhe sua evolução</p>
                 </a>
             </div>
 
             <!-- Dica do Dia -->
-            <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-                <h3 class="text-lg font-semibold text-gray-800 mb-3">💡 Dica do Dia</h3>
-                <p class="text-gray-600" id="daily-tip">Pratique por pelo menos 15 minutos todos os dias. A consistência é mais importante que a duração!</p>
+            <div class="bg-white rounded-xl p-4 sm:p-6 shadow-sm border border-gray-100">
+                <h3 class="text-base sm:text-lg font-semibold text-gray-800 mb-2 sm:mb-3">💡 Dica do Dia</h3>
+                <p class="text-gray-600 text-sm sm:text-base" id="daily-tip">Pratique por pelo menos 15 minutos todos os dias. A consistência é mais importante que a duração!</p>
             </div>
         </main>
     </div>

@@ -2,7 +2,6 @@
    EnglishAI - Estilos Globais
    ============================================ */
 
-/* Reset e Base */
 * {
     margin: 0;
     padding: 0;
@@ -15,7 +14,6 @@ body {
     -moz-osx-font-smoothing: grayscale;
 }
 
-/* Scrollbar Personalizada */
 ::-webkit-scrollbar {
     width: 6px;
 }
@@ -33,7 +31,6 @@ body {
     background: #94a3b8;
 }
 
-/* Animações */
 .fade-in {
     animation: fadeIn 0.3s ease-out;
 }
@@ -60,7 +57,7 @@ body {
 
 /* Mensagens do Chat */
 .message {
-    max-width: 80%;
+    max-width: 85%;
     padding: 12px 16px;
     border-radius: 18px;
     line-height: 1.5;
@@ -105,7 +102,7 @@ body {
 .typing-indicator {
     display: flex;
     align-items: center;
-    space-x: 4px;
+    gap: 4px;
     padding: 12px 16px;
     background: #f1f5f9;
     border-radius: 18px;
@@ -233,6 +230,8 @@ input:focus, textarea:focus {
     font-weight: 500;
     z-index: 1000;
     animation: toastIn 0.3s ease-out;
+    max-width: 90%;
+    text-align: center;
 }
 
 @keyframes toastIn {

@@ -13,34 +13,27 @@ class GeminiChat {
         this.systemPrompt = '';
     }
 
-    // Definir prompt do sistema
     setSystemPrompt(prompt) {
         this.systemPrompt = prompt;
     }
 
-    // Limpar histórico de conversa
     clearHistory() {
         this.conversationHistory = [];
     }
 
-    // Enviar mensagem e receber resposta
     async sendMessage(userMessage, level) {
         if (!this.apiKey) {
-            throw new Error('Chave de API não configurada. Vá em Configurações para adicionar sua chave.');
+            throw new Error('Chave de API não configurada.');
         }
 
-        // Adicionar mensagem do usuário ao histórico
         this.conversationHistory.push({
             role: 'user',
             parts: [{ text: userMessage }]
         });
 
-        // Montar o conteúdo completo
         const contents = [];
 
-        // Adicionar contexto de sistema como primeira mensagem do usuário
         if (this.conversationHistory.length === 1) {
-            // Primeira interação: incluir prompt do sistema
             const systemMessage = this.getInitialPrompt(level);
             contents.push({
                 role: 'user',
@@ -52,7 +45,6 @@ class GeminiChat {
             });
         }
 
-        // Adicionar histórico de conversa
         contents.push(...this.conversationHistory);
 
         try {
@@ -70,29 +62,17 @@ class GeminiChat {
                         maxOutputTokens: 1024,
                     },
                     safetySettings: [
-                        {
-                            category: 'HARM_CATEGORY_HARASSMENT',
-                            threshold: 'BLOCK_MEDIUM_AND_ABOVE'
-                        },
-                        {
-                            category: 'HARM_CATEGORY_HATE_SPEECH',
-                            threshold: 'BLOCK_MEDIUM_AND_ABOVE'
-                        },
-                        {
-                            category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
-                            threshold: 'BLOCK_MEDIUM_AND_ABOVE'
-                        },
-                        {
-                            category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
-                            threshold: 'BLOCK_MEDIUM_AND_ABOVE'
-                        }
+                        { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
+                        { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
+                        { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
+                        { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' }
                     ]
                 })
             });
 
             if (!response.ok) {
-                const errorData = await response.json();
-                console.error('Erro da API:', errorData);
+                const errorData = await response.json().catch(() => ({}));
+                console.error('Erro da API:', response.status, errorData);
                 
                 if (response.status === 400) {
                     throw new Error('Chave de API inválida. Verifique suas configurações.');
@@ -101,7 +81,7 @@ class GeminiChat {
                 } else if (response.status === 429) {
                     throw new Error('Muitas requisições. Aguarde um momento e tente novamente.');
                 } else {
-                    throw new Error(`Erro na API: ${errorData.error?.message || 'Erro desconhecido'}`);
+                    throw new Error(`Erro na API (${response.status}): ${errorData.error?.message || 'Erro desconhecido'}`);
                 }
             }
 
@@ -110,7 +90,6 @@ class GeminiChat {
             if (data.candidates && data.candidates[0] && data.candidates[0].content) {
                 const aiResponse = data.candidates[0].content.parts[0].text;
                 
-                // Adicionar resposta da IA ao histórico
                 this.conversationHistory.push({
                     role: 'model',
                     parts: [{ text: aiResponse }]
@@ -127,7 +106,6 @@ class GeminiChat {
         }
     }
 
-    // Obter prompt inicial baseado no nível
     getInitialPrompt(level) {
         const userName = getCurrentUser()?.name || 'student';
         
@@ -144,7 +122,6 @@ IMPORTANT CONTEXT:
 Start the conversation now by greeting the student and suggesting a topic to practice.`;
     }
 
-    // Gerar exercício baseado no contexto
     async generateExercise(level, topic) {
         const prompt = `Based on the ${level} level and topic "${topic}", create a quick English exercise.
 
@@ -175,6 +152,11 @@ Make it appropriate for ${level} level. Keep it simple and practical.`;
                 })
             });
 
+            if (!response.ok) {
+                console.error('Erro ao gerar exercício:', response.status);
+                return null;
+            }
+
             const data = await response.json();
             
             if (data.candidates && data.candidates[0]) {
@@ -186,53 +168,9 @@ Make it appropriate for ${level} level. Keep it simple and practical.`;
             return null;
         }
     }
-
-    // Corrigir texto do usuário
-    async correctText(userText, level) {
-        const prompt = `Correct this English text from a ${level} level student.
-
-Student wrote: "${userText}"
-
-Respond in this EXACT format:
-CORRECTED: [corrected version, or "No corrections needed" if perfect]
-ERRORS: [list errors in Portuguese, or "none" if perfect]
-TIP: [one helpful tip in Portuguese]
-SCORE: [1-10 rating]
-
-Be gentle and encouraging. Focus on the most important corrections.`;
-
-        try {
-            const response = await fetch(`${GEMINI_API_URL}?key=${this.apiKey}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    contents: [{
-                        role: 'user',
-                        parts: [{ text: prompt }]
-                    }],
-                    generationConfig: {
-                        temperature: 0.3,
-                        maxOutputTokens: 256,
-                    }
-                })
-            });
-
-            const data = await response.json();
-            
-            if (data.candidates && data.candidates[0]) {
-                return data.candidates[0].content.parts[0].text;
-            }
-            return null;
-        } catch (error) {
-            console.error('Erro ao corrigir texto:', error);
-            return null;
-        }
-    }
 }
 
-// Função global para enviar mensagem
+// Função global
 let geminiChat = null;
 
 function initGeminiChat() {
