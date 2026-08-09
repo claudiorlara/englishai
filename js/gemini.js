@@ -10,7 +10,7 @@ class GeminiChat {
         this.conversationHistory = [];
         this.systemPrompt = '';
         this.lastRequestTime = 0;
-        this.minRequestInterval = 3000; // 3 segundos entre requests
+        this.minRequestInterval = 3000;
     }
 
     setSystemPrompt(prompt) {
@@ -25,33 +25,11 @@ class GeminiChat {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
-    async retryFetch(url, options, maxRetries = 3) {
-        for (let attempt = 0; attempt < maxRetries; attempt++) {
-            try {
-                const response = await fetch(url, options);
-                
-                if (response.status === 429) {
-                    const waitTime = Math.pow(2, attempt) * 2000; // 2s, 4s, 8s
-                    console.log(`Rate limited. Waiting ${waitTime}ms before retry...`);
-                    await this.wait(waitTime);
-                    continue;
-                }
-                
-                return response;
-            } catch (error) {
-                if (attempt === maxRetries - 1) throw error;
-                await this.wait(1000 * (attempt + 1));
-            }
-        }
-        throw new Error('Muitas requisições. Aguarde um momento e tente novamente.');
-    }
-
     async sendMessage(userMessage, level) {
         if (!this.apiKey) {
             throw new Error('Chave de API não configurada.');
         }
 
-        // Respeitar intervalo mínimo entre requests
         const now = Date.now();
         const timeSinceLastRequest = now - this.lastRequestTime;
         if (timeSinceLastRequest < this.minRequestInterval) {
@@ -64,7 +42,6 @@ class GeminiChat {
             parts: [{ text: userMessage }]
         });
 
-        // Manter histórico limitado (últimas 10 mensagens)
         if (this.conversationHistory.length > 10) {
             this.conversationHistory = this.conversationHistory.slice(-10);
         }
@@ -85,48 +62,45 @@ class GeminiChat {
 
         contents.push(...this.conversationHistory);
 
+        const requestBody = {
+            contents: contents,
+            generationConfig: {
+                temperature: 0.7,
+                maxOutputTokens: 512,
+            }
+        };
+
+        console.log('Request URL:', GEMINI_API_URL);
+        console.log('API Key starts with:', this.apiKey.substring(0, 8));
+        console.log('Request body:', JSON.stringify(requestBody).substring(0, 200));
+
         try {
-            console.log('Enviando request para:', GEMINI_API_URL);
-            console.log('API Key (primeiros 10 chars):', this.apiKey.substring(0, 10) + '...');
-            console.log('Número de mensagens no histórico:', contents.length);
-            const response = await this.retryFetch(`${GEMINI_API_URL}?key=${this.apiKey}`, {
+            const response = await fetch(`${GEMINI_API_URL}?key=${this.apiKey}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    contents: contents,
-                    generationConfig: {
-                        temperature: 0.7,
-                        topK: 40,
-                        topP: 0.95,
-                        maxOutputTokens: 512,
-                    },
-                    safetySettings: [
-                        { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
-                        { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
-                        { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
-                        { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' }
-                    ]
-                })
+                body: JSON.stringify(requestBody)
             });
 
+            console.log('Response status:', response.status);
+            
+            const responseText = await response.text();
+            console.log('Response body:', responseText.substring(0, 500));
+
             if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                console.error('Erro da API:', response.status, errorData);
-                
-                if (response.status === 400) {
-                    throw new Error('Chave de API inválida.');
-                } else if (response.status === 403) {
-                    throw new Error('Chave de API sem permissão.');
-                } else if (response.status === 429) {
-                    throw new Error('Limite de requisições atingido. Aguarde 30 segundos e tente novamente.');
-                } else {
-                    throw new Error(`Erro na API: ${errorData.error?.message || 'Erro desconhecido'}`);
+                let errorData;
+                try {
+                    errorData = JSON.parse(responseText);
+                } catch(e) {
+                    errorData = { error: { message: responseText } };
                 }
+                
+                const errorMsg = errorData.error?.message || JSON.stringify(errorData);
+                throw new Error(`API ${response.status}: ${errorMsg}`);
             }
 
-            const data = await response.json();
+            const data = JSON.parse(responseText);
             
             if (data.candidates && data.candidates[0] && data.candidates[0].content) {
                 const aiResponse = data.candidates[0].content.parts[0].text;
@@ -138,11 +112,16 @@ class GeminiChat {
 
                 return aiResponse;
             } else {
-                throw new Error('Resposta inválida da API');
+                throw new Error('Resposta vazia da API: ' + JSON.stringify(data).substring(0, 200));
             }
 
         } catch (error) {
-            console.error('Erro ao comunicar com Gemini:', error);
+            console.error('Erro completo:', error);
+            
+            if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                throw new Error('Erro de rede/CORS: ' + error.message);
+            }
+            
             throw error;
         }
     }
@@ -152,64 +131,10 @@ class GeminiChat {
         
         return `${this.systemPrompt}
 
-IMPORTANT CONTEXT:
-- The student's name is ${userName}
-- Current level: ${level}
-- This is the beginning of a new conversation
-- Start with a warm greeting in English
-- Suggest a conversation topic appropriate for their level
-- Remember to be encouraging and patient
-- Keep your response SHORT (2-3 sentences max)
+Student name: ${userName}
+Level: ${level}
 
-Start the conversation now by greeting the student and suggesting a topic to practice.`;
-    }
-
-    async generateExercise(level, topic) {
-        const now = Date.now();
-        if (now - this.lastRequestTime < this.minRequestInterval) {
-            await this.wait(this.minRequestInterval - (now - this.lastRequestTime));
-        }
-        this.lastRequestTime = Date.now();
-
-        const prompt = `Create a simple English exercise for ${level} level about "${topic}".
-
-Format:
-TYPE: [fill_blank/multiple_choice]
-QUESTION: [question]
-OPTIONS: [A, B, C, D] (for multiple_choice)
-ANSWER: [correct answer]
-EXPLANATION: [brief explanation in Portuguese]`;
-
-        try {
-            const response = await this.retryFetch(`${GEMINI_API_URL}?key=${this.apiKey}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    contents: [{
-                        role: 'user',
-                        parts: [{ text: prompt }]
-                    }],
-                    generationConfig: {
-                        temperature: 0.8,
-                        maxOutputTokens: 256,
-                    }
-                })
-            });
-
-            if (!response.ok) return null;
-
-            const data = await response.json();
-            
-            if (data.candidates && data.candidates[0]) {
-                return data.candidates[0].content.parts[0].text;
-            }
-            return null;
-        } catch (error) {
-            console.error('Erro ao gerar exercício:', error);
-            return null;
-        }
+Start with a short greeting in English (2-3 sentences max). Suggest a topic.`;
     }
 }
 

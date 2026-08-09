@@ -50,9 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
 function setupTopics() {
     const topics = getConversationScenarios(getCurrentLevel());
     const container = document.getElementById('topic-buttons');
-    
     if (!container) return;
-    
     container.innerHTML = topics.map(scenario => `
         <button onclick="changeTopic('${scenario.topic.replace(/'/g, "\\'")}')" class="topic-btn">
             ${scenario.emoji} ${scenario.name}
@@ -61,103 +59,74 @@ function setupTopics() {
 }
 
 function toggleTopicMenu() {
-    const menu = document.getElementById('topic-menu');
-    menu.classList.toggle('hidden');
+    document.getElementById('topic-menu').classList.toggle('hidden');
 }
 
 function changeTopic(topic) {
     currentTopic = topic;
     document.getElementById('topic-menu').classList.add('hidden');
-    
     clearChat();
     geminiChat.clearHistory();
-    
-    addSystemMessage(`Novo tópico: ${topic}`);
+    addSystemMessage('Novo tópico: ' + topic);
     startConversation();
 }
 
 async function startConversation() {
     if (conversationStarted) return;
-    
     conversationStarted = true;
     showTypingIndicator();
     
     try {
         const chat = getGeminiChat();
-        console.log('Iniciando conversa com nível:', getCurrentLevel());
-        const greeting = await chat.sendMessage('Hello! Let\'s start practicing.', getCurrentLevel());
-        
+        const greeting = await chat.sendMessage('Hello!', getCurrentLevel());
         hideTypingIndicator();
         addAIMessage(greeting);
     } catch (error) {
         hideTypingIndicator();
-        console.error('Erro completo:', error);
-        
-        let errorMsg = 'Erro ao conectar com a IA.';
-        let details = '';
-        let showRetry = true;
-        
-        if (error.message.includes('429') || error.message.includes('RESOURCE_EXHAUSTED')) {
-            errorMsg = '⏳ Limite de requisições atingido.';
-            details = 'Aguarde 60 segundos e clique em Tentar Novamente.';
-        } else if (error.message.includes('API key') || error.message.includes('inválida') || error.message.includes('400')) {
-            errorMsg = '🔑 Chave de API inválida.';
-            details = 'Verifique sua chave em Configurações.';
-            showRetry = false;
-        } else if (error.message.includes('403')) {
-            errorMsg = '🚫 Chave de API sem permissão.';
-            details = 'Crie uma nova chave em aistudio.google.com/apikey';
-            showRetry = false;
-        } else if (error.message.includes('fetch') || error.message.includes('network') || error.message.includes('Failed')) {
-            errorMsg = '📡 Erro de conexão.';
-            details = 'Verifique sua internet e tente novamente.';
-        } else {
-            details = error.message || 'Erro desconhecido';
-        }
-        
-        addSystemMessage('⚠️ ' + errorMsg + '<br><small>' + details + '</small>');
-        
-        if (showRetry) {
-            const container = document.getElementById('chat-messages');
-            const retryDiv = document.createElement('div');
-            retryDiv.className = 'text-center mt-4';
-            retryDiv.innerHTML = `
-                <button onclick="retryConversation()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition">
-                    🔄 Tentar Novamente
-                </button>
-            `;
-            container.appendChild(retryDiv);
-        }
+        showError(error);
     }
+}
+
+function showError(error) {
+    const container = document.getElementById('chat-messages');
+    
+    let errorHTML = '<div class="bg-red-50 border border-red-200 rounded-lg p-4 m-4">';
+    errorHTML += '<p class="text-red-800 font-bold mb-2">❌ Erro ao conectar com a IA</p>';
+    errorHTML += '<p class="text-red-600 text-sm mb-3">' + (error.message || 'Erro desconhecido') + '</p>';
+    
+    if (error.message && error.message.includes('403')) {
+        errorHTML += '<p class="text-red-600 text-sm">Sua chave de API pode estar com problema. Crie uma nova em:<br>';
+        errorHTML += '<a href="https://aistudio.google.com/apikey" target="_blank" class="text-blue-600 underline">aistudio.google.com/apikey</a></p>';
+    }
+    
+    errorHTML += '</div>';
+    
+    container.innerHTML = errorHTML + `
+        <div class="text-center mt-4">
+            <button onclick="retryConversation()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition">
+                🔄 Tentar Novamente
+            </button>
+            <br><br>
+            <a href="index.html" class="text-blue-600 text-sm underline">⚙️ Verificar Configurações</a>
+        </div>
+    `;
 }
 
 async function retryConversation() {
     conversationStarted = false;
     clearChat();
-    
-    // Aguardar 5 segundos antes de tentar
     addSystemMessage('Aguarde 5 segundos...');
     await new Promise(r => setTimeout(r, 5000));
-    
-    // Limpar mensagem de aguarde
-    const container = document.getElementById('chat-messages');
-    const messages = container.querySelectorAll('.text-center');
-    messages.forEach(m => {
-        if (m.textContent.includes('Aguarde')) m.remove();
-    });
-    
     startConversation();
 }
 
 async function sendMessage() {
     const input = document.getElementById('message-input');
     const message = input.value.trim();
-    
     if (!message || isTyping) return;
     
     input.value = '';
     input.focus();
-    
     addUserMessage(message);
     
     isTyping = true;
@@ -166,51 +135,20 @@ async function sendMessage() {
     try {
         const chat = getGeminiChat();
         const response = await chat.sendMessage(message, getCurrentLevel());
-        
         hideTypingIndicator();
         isTyping = false;
+        addAIMessage(response);
         
-        processAIResponse(response);
-        
+        earnXP(5);
+        const user = getCurrentUser();
+        if (user) {
+            user.totalConversations = (user.totalConversations || 0) + 0.5;
+            saveUser(user);
+        }
     } catch (error) {
         hideTypingIndicator();
         isTyping = false;
-        
-        console.error('Erro ao enviar mensagem:', error);
-        
-        let errorMsg = 'Erro ao obter resposta. Tente novamente.';
-        
-        if (error.message.includes('limite') || error.message.includes('429')) {
-            errorMsg = '⏳ Limite atingido. Aguarde 30 segundos antes de enviar outra mensagem.';
-        } else if (error.message.includes('API key')) {
-            errorMsg = 'Chave de API inválida.';
-        }
-        
-        addSystemMessage('⚠️ ' + errorMsg);
-    }
-}
-
-function processAIResponse(response) {
-    const correctionMatch = response.match(/\*\*Correção:?\*\*\s*(.+)/i);
-    
-    if (correctionMatch) {
-        const mainResponse = response.replace(/\*\*Correção:?\*\*\s*.+/i, '').trim();
-        const correction = correctionMatch[1].trim();
-        
-        if (mainResponse) {
-            addAIMessage(mainResponse);
-        }
-        addCorrectionMessage(correction);
-    } else {
-        addAIMessage(response);
-    }
-    
-    earnXP(5);
-    
-    const user = getCurrentUser();
-    if (user) {
-        user.totalConversations = (user.totalConversations || 0) + 0.5;
-        saveUser(user);
+        showError(error);
     }
 }
 
@@ -235,7 +173,6 @@ function addAIMessage(text) {
             </div>
         </div>
     `;
-    
     container.appendChild(messageDiv);
     scrollToBottom();
 }
@@ -256,21 +193,6 @@ function addUserMessage(text) {
             </div>
         </div>
     `;
-    
-    container.appendChild(messageDiv);
-    scrollToBottom();
-}
-
-function addCorrectionMessage(correction) {
-    const container = document.getElementById('chat-messages');
-    const messageDiv = document.createElement('div');
-    messageDiv.className = 'correction message-animate mb-4';
-    
-    messageDiv.innerHTML = `
-        <p class="correction-title">💡 Correção:</p>
-        <p class="correction-text">${correction}</p>
-    `;
-    
     container.appendChild(messageDiv);
     scrollToBottom();
 }
@@ -279,9 +201,7 @@ function addSystemMessage(text) {
     const container = document.getElementById('chat-messages');
     const messageDiv = document.createElement('div');
     messageDiv.className = 'text-center text-gray-500 text-sm my-4 px-4';
-    
-    messageDiv.innerHTML = `<span class="bg-gray-100 px-3 py-1 rounded-full inline-block">${text}</span>`;
-    
+    messageDiv.innerHTML = '<span class="bg-gray-100 px-3 py-1 rounded-full inline-block">' + text + '</span>';
     container.appendChild(messageDiv);
     scrollToBottom();
 }
@@ -291,34 +211,27 @@ function showTypingIndicator() {
     const typingDiv = document.createElement('div');
     typingDiv.id = 'typing-indicator';
     typingDiv.className = 'message message-ai mb-4';
-    
     typingDiv.innerHTML = `
         <div class="flex items-start space-x-2">
             <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
                 <span class="text-white text-sm">🤖</span>
             </div>
             <div class="typing-indicator">
-                <span></span>
-                <span></span>
-                <span></span>
+                <span></span><span></span><span></span>
             </div>
         </div>
     `;
-    
     container.appendChild(typingDiv);
     scrollToBottom();
 }
 
 function hideTypingIndicator() {
     const typing = document.getElementById('typing-indicator');
-    if (typing) {
-        typing.remove();
-    }
+    if (typing) typing.remove();
 }
 
 function clearChat() {
-    const container = document.getElementById('chat-messages');
-    container.innerHTML = '';
+    document.getElementById('chat-messages').innerHTML = '';
     conversationStarted = false;
 }
 
