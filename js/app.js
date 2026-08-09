@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="text-center p-6">
                     <div class="text-6xl mb-4">🔑</div>
                     <h2 class="text-xl font-bold text-gray-800 mb-2">Chave de API necessária</h2>
-                    <p class="text-gray-500 mb-4">Você precisa de uma chave de API do Google Gemini para usar o chat.</p>
+                    <p class="text-gray-500 mb-4">Você precisa de uma chave de API do Google Gemini.</p>
                     <a href="index.html" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition">
                         Configurar API Key
                     </a>
@@ -93,14 +93,49 @@ async function startConversation() {
         console.error('Erro ao iniciar conversa:', error);
         
         let errorMsg = 'Erro ao conectar com a IA.';
-        if (error.message.includes('API key')) {
+        let showRetry = false;
+        
+        if (error.message.includes('limite') || error.message.includes('429')) {
+            errorMsg = 'Muitas requisições. Aguarde 30 segundos e recarregue a página.';
+            showRetry = true;
+        } else if (error.message.includes('API key') || error.message.includes('inválida')) {
             errorMsg = 'Chave de API inválida. Verifique suas configurações.';
-        } else if (error.message.includes('fetch')) {
+        } else if (error.message.includes('fetch') || error.message.includes('network')) {
             errorMsg = 'Erro de conexão. Verifique sua internet.';
         }
         
         addSystemMessage('⚠️ ' + errorMsg);
+        
+        if (showRetry) {
+            const container = document.getElementById('chat-messages');
+            const retryDiv = document.createElement('div');
+            retryDiv.className = 'text-center mt-4';
+            retryDiv.innerHTML = `
+                <button onclick="retryConversation()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition">
+                    🔄 Tentar Novamente
+                </button>
+            `;
+            container.appendChild(retryDiv);
+        }
     }
+}
+
+async function retryConversation() {
+    conversationStarted = false;
+    clearChat();
+    
+    // Aguardar 5 segundos antes de tentar
+    addSystemMessage('Aguarde 5 segundos...');
+    await new Promise(r => setTimeout(r, 5000));
+    
+    // Limpar mensagem de aguarde
+    const container = document.getElementById('chat-messages');
+    const messages = container.querySelectorAll('.text-center');
+    messages.forEach(m => {
+        if (m.textContent.includes('Aguarde')) m.remove();
+    });
+    
+    startConversation();
 }
 
 async function sendMessage() {
@@ -133,10 +168,11 @@ async function sendMessage() {
         console.error('Erro ao enviar mensagem:', error);
         
         let errorMsg = 'Erro ao obter resposta. Tente novamente.';
-        if (error.message.includes('API key')) {
+        
+        if (error.message.includes('limite') || error.message.includes('429')) {
+            errorMsg = '⏳ Limite atingido. Aguarde 30 segundos antes de enviar outra mensagem.';
+        } else if (error.message.includes('API key')) {
             errorMsg = 'Chave de API inválida.';
-        } else if (error.message.includes('fetch')) {
-            errorMsg = 'Erro de conexão. Verifique sua internet.';
         }
         
         addSystemMessage('⚠️ ' + errorMsg);
