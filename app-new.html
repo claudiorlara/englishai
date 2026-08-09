@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>EnglishAI - Aprenda Inglês</title>
+    <link rel="stylesheet" href="css/app.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#58cc02">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+</head>
+<body>
+    <!-- Tela de Login -->
+    <div id="screen-login" class="screen active">
+        <div class="login-container">
+            <div class="logo-large">🦉</div>
+            <h1 class="app-title">EnglishAI</h1>
+            <p class="app-subtitle">Aprenda inglês praticando</p>
+            
+            <div class="login-form">
+                <input type="text" id="login-name" placeholder="Seu nome" class="input-field">
+                <button onclick="startApp()" class="btn-primary">Começar a aprender</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tela Principal -->
+    <div id="screen-home" class="screen">
+        <header class="top-bar">
+            <div class="streak-badge">🔥 <span id="streak">0</span></div>
+            <div class="xp-badge">⭐ <span id="xp">0</span> XP</div>
+            <div class="hearts-badge">❤️ <span id="hearts">5</span></div>
+        </header>
+
+        <main class="lesson-path" id="lesson-path">
+            <!-- Lições aparecem aqui -->
+        </main>
+
+        <nav class="bottom-nav">
+            <button onclick="showTab('home')" class="nav-btn active" data-tab="home">
+                <span class="nav-icon">🏠</span>
+                <span class="nav-label">Início</span>
+            </button>
+            <button onclick="showTab('practice')" class="nav-btn" data-tab="practice">
+                <span class="nav-icon">🎯</span>
+                <span class="nav-label">Praticar</span>
+            </button>
+            <button onclick="showTab('vocabulary')" class="nav-btn" data-tab="vocabulary">
+                <span class="nav-icon">📚</span>
+                <span class="nav-label">Vocabulário</span>
+            </button>
+            <button onclick="showTab('profile')" class="nav-btn" data-tab="profile">
+                <span class="nav-icon">👤</span>
+                <span class="nav-label">Perfil</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- Tela de Lição -->
+    <div id="screen-lesson" class="screen">
+        <div class="lesson-header">
+            <button onclick="exitLesson()" class="btn-close">✕</button>
+            <div class="progress-bar-container">
+                <div class="progress-bar-fill" id="lesson-progress"></div>
+            </div>
+            <div class="hearts-lesson">❤️ <span id="lesson-hearts">5</span></div>
+        </div>
+
+        <main class="lesson-content" id="lesson-content">
+            <!-- Exercícios aparecem aqui -->
+        </main>
+
+        <div class="lesson-footer">
+            <button onclick="checkAnswer()" class="btn-check" id="btn-check">Verificar</button>
+        </div>
+    </div>
+
+    <!-- Tela de Vocabulário -->
+    <div id="screen-vocabulary" class="screen">
+        <header class="screen-header">
+            <h2>📚 Meu Vocabulário</h2>
+        </header>
+        <main class="vocab-list" id="vocab-list">
+            <!-- Palavras aparecem aqui -->
+        </main>
+        <nav class="bottom-nav">
+            <button onclick="showTab('home')" class="nav-btn" data-tab="home">
+                <span class="nav-icon">🏠</span>
+                <span class="nav-label">Início</span>
+            </button>
+            <button onclick="showTab('practice')" class="nav-btn" data-tab="practice">
+                <span class="nav-icon">🎯</span>
+                <span class="nav-label">Praticar</span>
+            </button>
+            <button onclick="showTab('vocabulary')" class="nav-btn active" data-tab="vocabulary">
+                <span class="nav-icon">📚</span>
+                <span class="nav-label">Vocabulário</span>
+            </button>
+            <button onclick="showTab('profile')" class="nav-btn" data-tab="profile">
+                <span class="nav-icon">👤</span>
+                <span class="nav-label">Perfil</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- Tela de Perfil -->
+    <div id="screen-profile" class="screen">
+        <header class="screen-header">
+            <h2>👤 Meu Perfil</h2>
+        </header>
+        <main class="profile-content">
+            <div class="profile-card">
+                <div class="profile-avatar">🦉</div>
+                <h3 id="profile-name">Usuário</h3>
+                <p class="profile-level">Nível: <span id="profile-level">A1</span></p>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="stat-xp">0</div>
+                    <div class="stat-label">XP Total</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="stat-words">0</div>
+                    <div class="stat-label">Palavras</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="stat-lessons">0</div>
+                    <div class="stat-label">Lições</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="stat-streak">0</div>
+                    <div class="stat-label">Sequência</div>
+                </div>
+            </div>
+            <button onclick="resetProgress()" class="btn-secondary">Resetar Progresso</button>
+        </main>
+        <nav class="bottom-nav">
+            <button onclick="showTab('home')" class="nav-btn" data-tab="home">
+                <span class="nav-icon">🏠</span>
+                <span class="nav-label">Início</span>
+            </button>
+            <button onclick="showTab('practice')" class="nav-btn" data-tab="practice">
+                <span class="nav-icon">🎯</span>
+                <span class="nav-label">Praticar</span>
+            </button>
+            <button onclick="showTab('vocabulary')" class="nav-btn" data-tab="vocabulary">
+                <span class="nav-icon">📚</span>
+                <span class="nav-label">Vocabulário</span>
+            </button>
+            <button onclick="showTab('profile')" class="nav-btn active" data-tab="profile">
+                <span class="nav-icon">👤</span>
+                <span class="nav-label">Perfil</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- Tela de Prática (Conversa com IA) -->
+    <div id="screen-practice" class="screen">
+        <header class="screen-header">
+            <button onclick="showTab('home')" class="btn-back">←</button>
+            <h2>🎯 Praticar com IA</h2>
+        </header>
+        <main class="practice-content">
+            <div class="chat-area" id="practice-chat">
+                <div class="chat-message ai">
+                    <div class="message-avatar">🤖</div>
+                    <div class="message-text">Hi! Let's practice English! What do you want to talk about?</div>
+                </div>
+            </div>
+            <div class="practice-input-area">
+                <button onclick="toggleVoiceInput()" class="btn-mic" id="btn-mic">🎤</button>
+                <input type="text" id="practice-input" placeholder="Digite ou fale em inglês..." class="input-practice">
+                <button onclick="sendPracticeMessage()" class="btn-send">➤</button>
+            </div>
+        </main>
+    </div>
+
+    <!-- Tela de Resultado -->
+    <div id="screen-result" class="screen">
+        <div class="result-container">
+            <div class="result-icon" id="result-icon">🎉</div>
+            <h2 class="result-title" id="result-title">Lição Completa!</h2>
+            <div class="result-stats">
+                <div class="result-stat">
+                    <span class="result-stat-value" id="result-xp">+10</span>
+                    <span class="result-stat-label">XP ganho</span>
+                </div>
+                <div class="result-stat">
+                    <span class="result-stat-value" id="result-accuracy">100%</span>
+                    <span class="result-stat-label">Precisão</span>
+                </div>
+            </div>
+            <button onclick="continueAfterResult()" class="btn-primary">Continuar</button>
+        </div>
+    </div>
+
+    <script src="js/data.js"></script>
+    <script src="js/speech.js"></script>
+    <script src="js/app-new.js"></script>
+</body>
+</html>
