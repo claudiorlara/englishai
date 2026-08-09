@@ -2,7 +2,7 @@
    EnglishAI - Integração com Google Gemini API
    ============================================ */
 
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent';
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
 
 class GeminiChat {
     constructor(apiKey) {
@@ -86,6 +86,9 @@ class GeminiChat {
         contents.push(...this.conversationHistory);
 
         try {
+            console.log('Enviando request para:', GEMINI_API_URL);
+            console.log('API Key (primeiros 10 chars):', this.apiKey.substring(0, 10) + '...');
+            console.log('Número de mensagens no histórico:', contents.length);
             const response = await this.retryFetch(`${GEMINI_API_URL}?key=${this.apiKey}`, {
                 method: 'POST',
                 headers: {

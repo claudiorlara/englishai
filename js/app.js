@@ -84,27 +84,38 @@ async function startConversation() {
     
     try {
         const chat = getGeminiChat();
+        console.log('Iniciando conversa com nível:', getCurrentLevel());
         const greeting = await chat.sendMessage('Hello! Let\'s start practicing.', getCurrentLevel());
         
         hideTypingIndicator();
         addAIMessage(greeting);
     } catch (error) {
         hideTypingIndicator();
-        console.error('Erro ao iniciar conversa:', error);
+        console.error('Erro completo:', error);
         
         let errorMsg = 'Erro ao conectar com a IA.';
-        let showRetry = false;
+        let details = '';
+        let showRetry = true;
         
-        if (error.message.includes('limite') || error.message.includes('429')) {
-            errorMsg = 'Muitas requisições. Aguarde 30 segundos e recarregue a página.';
-            showRetry = true;
-        } else if (error.message.includes('API key') || error.message.includes('inválida')) {
-            errorMsg = 'Chave de API inválida. Verifique suas configurações.';
-        } else if (error.message.includes('fetch') || error.message.includes('network')) {
-            errorMsg = 'Erro de conexão. Verifique sua internet.';
+        if (error.message.includes('429') || error.message.includes('RESOURCE_EXHAUSTED')) {
+            errorMsg = '⏳ Limite de requisições atingido.';
+            details = 'Aguarde 60 segundos e clique em Tentar Novamente.';
+        } else if (error.message.includes('API key') || error.message.includes('inválida') || error.message.includes('400')) {
+            errorMsg = '🔑 Chave de API inválida.';
+            details = 'Verifique sua chave em Configurações.';
+            showRetry = false;
+        } else if (error.message.includes('403')) {
+            errorMsg = '🚫 Chave de API sem permissão.';
+            details = 'Crie uma nova chave em aistudio.google.com/apikey';
+            showRetry = false;
+        } else if (error.message.includes('fetch') || error.message.includes('network') || error.message.includes('Failed')) {
+            errorMsg = '📡 Erro de conexão.';
+            details = 'Verifique sua internet e tente novamente.';
+        } else {
+            details = error.message || 'Erro desconhecido';
         }
         
-        addSystemMessage('⚠️ ' + errorMsg);
+        addSystemMessage('⚠️ ' + errorMsg + '<br><small>' + details + '</small>');
         
         if (showRetry) {
             const container = document.getElementById('chat-messages');
