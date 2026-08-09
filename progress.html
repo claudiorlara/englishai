@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EnglishAI - Meu Progresso</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/style.css">
+    <meta name="theme-color" content="#2563eb">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-sm px-4 py-3">
+        <div class="max-w-4xl mx-auto flex items-center space-x-3">
+            <a href="index.html" class="text-gray-400 hover:text-gray-600 transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                </svg>
+            </a>
+            <h1 class="text-xl font-bold text-gray-800">📊 Meu Progresso</h1>
+        </div>
+    </header>
+
+    <!-- Conteúdo -->
+    <main class="max-w-4xl mx-auto px-4 py-6">
+        <!-- Resumo Geral -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div class="bg-white rounded-xl p-4 shadow-sm text-center">
+                <p class="text-3xl font-bold text-blue-600" id="stat-level">A1</p>
+                <p class="text-sm text-gray-500">Nível Atual</p>
+            </div>
+            <div class="bg-white rounded-xl p-4 shadow-sm text-center">
+                <p class="text-3xl font-bold text-green-600" id="stat-xp">0</p>
+                <p class="text-sm text-gray-500">XP Total</p>
+            </div>
+            <div class="bg-white rounded-xl p-4 shadow-sm text-center">
+                <p class="text-3xl font-bold text-orange-500" id="stat-streak">0</p>
+                <p class="text-sm text-gray-500">Dias Seguidos</p>
+            </div>
+            <div class="bg-white rounded-xl p-4 shadow-sm text-center">
+                <p class="text-3xl font-bold text-purple-600" id="stat-conversations">0</p>
+                <p class="text-sm text-gray-500">Conversas</p>
+            </div>
+        </div>
+
+        <!-- Gráfico de Atividade (Semanal) -->
+        <div class="bg-white rounded-xl p-6 shadow-sm mb-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">📅 Atividade da Semana</h3>
+            <div class="flex items-end justify-between h-32" id="weekly-chart">
+                <!-- Preenchido pelo JS -->
+            </div>
+            <div class="flex justify-between mt-2 text-xs text-gray-400">
+                <span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span><span>Dom</span>
+            </div>
+        </div>
+
+        <!-- Progresso por Nível -->
+        <div class="bg-white rounded-xl p-6 shadow-sm mb-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">📈 Progresso por Nível</h3>
+            <div class="space-y-4" id="level-progress-list">
+                <!-- Preenchido pelo JS -->
+            </div>
+        </div>
+
+        <!-- Conquistas -->
+        <div class="bg-white rounded-xl p-6 shadow-sm">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">🏆 Conquistas</h3>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-4" id="achievements">
+                <!-- Preenchido pelo JS -->
+            </div>
+        </div>
+    </main>
+
+    <script src="js/auth.js"></script>
+    <script src="js/levels.js"></script>
+    <script src="js/progress.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
+            renderProgress();
+        });
+    </script>
+</body>
+</html>

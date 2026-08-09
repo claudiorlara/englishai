@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EnglishAI - Níveis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/style.css">
+    <meta name="theme-color" content="#2563eb">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-sm px-4 py-3">
+        <div class="max-w-4xl mx-auto flex items-center space-x-3">
+            <a href="index.html" class="text-gray-400 hover:text-gray-600 transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                </svg>
+            </a>
+            <h1 class="text-xl font-bold text-gray-800">📚 Níveis & Lições</h1>
+        </div>
+    </header>
+
+    <!-- Conteúdo -->
+    <main class="max-w-4xl mx-auto px-4 py-6">
+        <!-- Nível Atual -->
+        <div class="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-6 text-white mb-6">
+            <h2 class="text-lg font-semibold mb-2">Seu nível atual</h2>
+            <div class="flex items-center space-x-4">
+                <span class="text-5xl font-bold" id="display-level">A1</span>
+                <div>
+                    <p class="text-blue-100" id="level-name">Básico</p>
+                    <p class="text-sm text-blue-200" id="level-progress">0% concluído</p>
+                </div>
+            </div>
+            <!-- Barra de Progresso -->
+            <div class="mt-4 bg-white bg-opacity-20 rounded-full h-3">
+                <div class="bg-white rounded-full h-3 transition-all duration-500" id="level-bar" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <!-- Lista de Níveis -->
+        <div class="space-y-4" id="levels-list">
+            <!-- Preenchido pelo JS -->
+        </div>
+
+        <!-- Teste de Nível -->
+        <div class="mt-8 bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+            <h3 class="text-lg font-semibold text-gray-800 mb-2">📝 Teste de Nivelamento</h3>
+            <p class="text-gray-500 text-sm mb-4">Não sabe qual seu nível? Faça um teste rápido de 10 perguntas!</p>
+            <button onclick="startPlacementTest()"
+                class="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-6 rounded-lg transition">
+                Iniciar Teste
+            </button>
+        </div>
+    </main>
+
+    <script src="js/auth.js"></script>
+    <script src="js/levels.js"></script>
+    <script src="js/progress.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
+            renderLevels();
+        });
+
+        function startPlacementTest() {
+            alert('Em breve! Por enquanto, continue praticando e o app ajustará seu nível automaticamente.');
+        }
+    </script>
+</body>
+</html>
