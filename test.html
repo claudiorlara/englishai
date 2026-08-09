@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EnglishAI - Teste de Conexão</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
+        <h1 class="text-2xl font-bold text-gray-800 mb-6 text-center">🧪 Teste de Conexão</h1>
+        
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-600 mb-1">Sua API Key</label>
+                <input type="text" id="apikey" placeholder="AIzaSy..."
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none font-mono text-sm">
+            </div>
+            
+            <button onclick="testarAPI()" id="testBtn"
+                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition">
+                Testar Conexão
+            </button>
+            
+            <div id="resultado" class="hidden mt-4 p-4 rounded-lg"></div>
+        </div>
+    </div>
+
+    <script>
+        async function testarAPI() {
+            const apiKey = document.getElementById('apikey').value.trim();
+            const resultado = document.getElementById('resultado');
+            const btn = document.getElementById('testBtn');
+            
+            if (!apiKey) {
+                resultado.className = 'mt-4 p-4 rounded-lg bg-red-100 text-red-800';
+                resultado.innerHTML = '❌ Digite uma API key';
+                resultado.classList.remove('hidden');
+                return;
+            }
+            
+            btn.disabled = true;
+            btn.textContent = 'Testando...';
+            resultado.className = 'mt-4 p-4 rounded-lg bg-yellow-100 text-yellow-800';
+            resultado.innerHTML = '⏳ Enviando request...';
+            resultado.classList.remove('hidden');
+            
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+            
+            const body = {
+                contents: [{
+                    parts: [{ text: 'Say hello in one word' }]
+                }]
+            };
+            
+            try {
+                console.log('URL:', url);
+                console.log('Body:', JSON.stringify(body));
+                
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                
+                console.log('Status:', response.status);
+                
+                const text = await response.text();
+                console.log('Response:', text.substring(0, 500));
+                
+                if (response.ok) {
+                    const data = JSON.parse(text);
+                    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Sem resposta';
+                    resultado.className = 'mt-4 p-4 rounded-lg bg-green-100 text-green-800';
+                    resultado.innerHTML = `✅ <strong>Sucesso!</strong><br>Resposta da IA: "${reply}"<br><br><a href="index.html" class="text-green-700 underline">Ir para o app →</a>`;
+                } else {
+                    let errorMsg = text;
+                    try {
+                        const errData = JSON.parse(text);
+                        errorMsg = errData.error?.message || text;
+                    } catch(e) {}
+                    
+                    resultado.className = 'mt-4 p-4 rounded-lg bg-red-100 text-red-800';
+                    resultado.innerHTML = `❌ <strong>Erro ${response.status}:</strong><br>${errorMsg}`;
+                }
+            } catch (error) {
+                console.error('Fetch error:', error);
+                resultado.className = 'mt-4 p-4 rounded-lg bg-red-100 text-red-800';
+                resultado.innerHTML = `❌ <strong>Erro de rede:</strong><br>${error.message}<br><br><small>Pode ser problema de CORS ou internet.</small>`;
+            }
+            
+            btn.disabled = false;
+            btn.textContent = 'Testar Conexão';
+        }
+    </script>
+</body>
+</html>
