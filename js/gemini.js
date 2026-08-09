@@ -10,7 +10,6 @@ class GeminiChat {
         this.conversationHistory = [];
         this.systemPrompt = '';
         this.lastRequestTime = 0;
-        this.minRequestInterval = 3000;
     }
 
     setSystemPrompt(prompt) {
@@ -21,120 +20,78 @@ class GeminiChat {
         this.conversationHistory = [];
     }
 
-    async wait(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
-    }
-
     async sendMessage(userMessage, level) {
         if (!this.apiKey) {
             throw new Error('Chave de API não configurada.');
         }
 
+        // Intervalo entre requests
         const now = Date.now();
-        const timeSinceLastRequest = now - this.lastRequestTime;
-        if (timeSinceLastRequest < this.minRequestInterval) {
-            await this.wait(this.minRequestInterval - timeSinceLastRequest);
+        const elapsed = now - this.lastRequestTime;
+        if (elapsed < 2000) {
+            await new Promise(r => setTimeout(r, 2000 - elapsed));
         }
         this.lastRequestTime = Date.now();
 
+        // Adicionar mensagem ao histórico
         this.conversationHistory.push({
             role: 'user',
             parts: [{ text: userMessage }]
         });
 
-        if (this.conversationHistory.length > 10) {
-            this.conversationHistory = this.conversationHistory.slice(-10);
+        // Limitar histórico
+        if (this.conversationHistory.length > 8) {
+            this.conversationHistory = this.conversationHistory.slice(-8);
         }
 
+        // Montar contents
         const contents = [];
 
+        // Primeira mensagem: incluir prompt do sistema
         if (this.conversationHistory.length === 1) {
-            const systemMessage = this.getInitialPrompt(level);
-            contents.push({
-                role: 'user',
-                parts: [{ text: systemMessage }]
-            });
-            contents.push({
-                role: 'model',
-                parts: [{ text: 'I understand! I\'m ready to help you learn English. Let\'s start! 😊' }]
-            });
+            const userName = getCurrentUser()?.name || 'student';
+            const systemMsg = this.systemPrompt + `\n\nStudent: ${userName}\nLevel: ${level}\n\nGreet the student in English (2-3 sentences max). Suggest a topic.`;
+            
+            contents.push({ role: 'user', parts: [{ text: systemMsg }] });
+            contents.push({ role: 'model', parts: [{ text: "Hi! I'm your English tutor. Let's practice! 😊" }] });
         }
 
         contents.push(...this.conversationHistory);
 
-        const requestBody = {
-            contents: contents,
-            generationConfig: {
-                temperature: 0.7,
-                maxOutputTokens: 512,
-            }
-        };
-
-        console.log('Request URL:', GEMINI_API_URL);
-        console.log('API Key starts with:', this.apiKey.substring(0, 8));
-        console.log('Request body:', JSON.stringify(requestBody).substring(0, 200));
-
-        try {
-            const response = await fetch(`${GEMINI_API_URL}?key=${this.apiKey}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(requestBody)
-            });
-
-            console.log('Response status:', response.status);
-            
-            const responseText = await response.text();
-            console.log('Response body:', responseText.substring(0, 500));
-
-            if (!response.ok) {
-                let errorData;
-                try {
-                    errorData = JSON.parse(responseText);
-                } catch(e) {
-                    errorData = { error: { message: responseText } };
+        // Fazer request
+        const response = await fetch(`${GEMINI_API_URL}?key=${this.apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: contents,
+                generationConfig: {
+                    temperature: 0.7,
+                    maxOutputTokens: 512,
                 }
-                
-                const errorMsg = errorData.error?.message || JSON.stringify(errorData);
-                throw new Error(`API ${response.status}: ${errorMsg}`);
-            }
+            })
+        });
 
-            const data = JSON.parse(responseText);
-            
-            if (data.candidates && data.candidates[0] && data.candidates[0].content) {
-                const aiResponse = data.candidates[0].content.parts[0].text;
-                
-                this.conversationHistory.push({
-                    role: 'model',
-                    parts: [{ text: aiResponse }]
-                });
-
-                return aiResponse;
-            } else {
-                throw new Error('Resposta vazia da API: ' + JSON.stringify(data).substring(0, 200));
+        if (!response.ok) {
+            const errText = await response.text().catch(() => '');
+            let errMsg = 'Erro na API';
+            try {
+                const errData = JSON.parse(errText);
+                errMsg = errData.error?.message || errMsg;
+            } catch(e) {
+                errMsg = errText || errMsg;
             }
-
-        } catch (error) {
-            console.error('Erro completo:', error);
-            
-            if (error.name === 'TypeError' && error.message.includes('fetch')) {
-                throw new Error('Erro de rede/CORS: ' + error.message);
-            }
-            
-            throw error;
+            throw new Error(`API ${response.status}: ${errMsg}`);
         }
-    }
 
-    getInitialPrompt(level) {
-        const userName = getCurrentUser()?.name || 'student';
-        
-        return `${this.systemPrompt}
+        const data = await response.json();
 
-Student name: ${userName}
-Level: ${level}
+        if (data.candidates && data.candidates[0] && data.candidates[0].content) {
+            const aiResponse = data.candidates[0].content.parts[0].text;
+            this.conversationHistory.push({ role: 'model', parts: [{ text: aiResponse }] });
+            return aiResponse;
+        }
 
-Start with a short greeting in English (2-3 sentences max). Suggest a topic.`;
+        throw new Error('Resposta vazia da API');
     }
 }
 
@@ -144,8 +101,7 @@ function initGeminiChat() {
     const user = getCurrentUser();
     if (user && user.apiKey) {
         geminiChat = new GeminiChat(user.apiKey);
-        const level = user.level;
-        geminiChat.setSystemPrompt(getSystemPrompt(level));
+        geminiChat.setSystemPrompt(getSystemPrompt(user.level));
         return true;
     }
     return false;
